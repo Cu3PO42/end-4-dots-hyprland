@@ -87,7 +87,8 @@ const SheetContent = (id) => {
     return sheetContents[id];
 }
 
-export default (id) => {
+export default (gdkmonitor) => {
+    const id = gdkmonitor.connector;
     const widgetContent = Widget.Box({
         vertical: true,
         className: "cheatsheet-bg spacing-v-5",
@@ -97,7 +98,7 @@ export default (id) => {
         ]
     });
     return PopupWindow({
-        monitor: id,
+        gdkmonitor,
         name: `cheatsheet${id}`,
         layer: 'overlay',
         keymode: 'on-demand',

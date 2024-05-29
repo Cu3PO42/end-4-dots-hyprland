@@ -22,6 +22,8 @@ const TARGET = [Gtk.TargetEntry.new('text/plain', Gtk.TargetFlags.SAME_APP, 0)];
 
 const overviewTick = Variable(false);
 
+// TODO: may need adjustment
+
 export default (overviewMonitor = 0) => {
     const clientMap = new Map();
     const ContextMenuWorkspaceArray = ({ label, actionFunc, thisWorkspace }) => Widget.MenuItem({

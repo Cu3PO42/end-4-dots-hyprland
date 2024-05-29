@@ -16,6 +16,8 @@ const SWITCHWALL_SCRIPT_PATH = `${App.configDir}/scripts/color_generation/switch
 const WALLPAPER_ZOOM_SCALE = 1.25; // For scrolling when we switch workspace
 const MAX_WORKSPACES = 10;
 
+// TODO: monitor port?
+
 export default (monitor = 0) => {
     const WALLPAPER_OFFSCREEN_X = (WALLPAPER_ZOOM_SCALE - 1) * monitors[monitor].width;
     const WALLPAPER_OFFSCREEN_Y = (WALLPAPER_ZOOM_SCALE - 1) * monitors[monitor].height;

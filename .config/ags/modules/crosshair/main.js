@@ -2,10 +2,10 @@ import Widget from 'resource:///com/github/Aylur/ags/widget.js';
 import { enableClickthrough } from "../.widgetutils/clickthrough.js";
 import { RoundedCorner } from "../.commonwidgets/cairo_roundedcorner.js";
 
-export default (monitor = 0, ) => {
+export default (gdkmonitor) => {
     return Widget.Window({
-        monitor,
-        name: `crosshair${monitor}`,
+        gdkmonitor,
+        name: `crosshair${gdkmonitor.connector}`,
         layer: 'overlay',
         exclusivity: 'ignore',
         visible: false,

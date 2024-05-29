@@ -1,11 +1,11 @@
 import PopupWindow from '../.widgethacks/popupwindow.js';
 import OnScreenKeyboard from "./onscreenkeyboard.js";
 
-export default (id) => PopupWindow({
-    monitor: id,
+export default (gdkmonitor) => PopupWindow({
+    gdkmonitor,
     anchor: ['bottom'],
-    name: `osk${id}`,
+    name: `osk${gdkmonitor.connector}`,
     showClassName: 'osk-show',
     hideClassName: 'osk-hide',
-    child: OnScreenKeyboard({ id: id }),
+    child: OnScreenKeyboard({ id: gdkmonitor.connector }),
 });

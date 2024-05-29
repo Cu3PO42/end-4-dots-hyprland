@@ -1,3 +1,4 @@
+import Gdk from 'gi://Gdk';
 import Hyprland from 'resource:///com/github/Aylur/ags/service/hyprland.js';
 import Service from 'resource:///com/github/Aylur/ags/service.js';
 import * as Utils from 'resource:///com/github/Aylur/ags/utils.js';
@@ -108,33 +109,59 @@ async function listDdcMonitorsSnBus() {
 }
 
 // Service instance
-const numMonitors = Hyprland.monitors.length;
-const service = Array(numMonitors);
-const ddcSnBus = await listDdcMonitorsSnBus();
-for (let i = 0; i < service.length; i++) {
-    const monitorName = Hyprland.monitors[i].name;
-    const monitorSn = Hyprland.monitors[i].serial;
+const display = Gdk.Display.get_default();
+const service = {};
+let ddcSnBus = await listDdcMonitorsSnBus();
+let hyprlandMonitors = new Map(Hyprland.monitors.map(e => [e.name, e]));
+console.log(Hyprland.monitors);
+function constructForMonitor(monitor) {
+    const monitorName = monitor.connector;
+    console.log(monitorName)
+    const monitorSn = hyprlandMonitors.get(monitorName).serial;
     const preferredController = userOptions.brightness.controllers[monitorName]
         || userOptions.brightness.controllers.default || "auto";
-    if (preferredController) {
-        switch (preferredController) {
-            case "brightnessctl":
-                service[i] = new BrightnessCtlService();
-                break;
-            case "ddcutil":
-                service[i] = new BrightnessDdcService(ddcSnBus[monitorSn]);
-                break;
-            case "auto":
-                if (monitorSn in ddcSnBus)
-                    service[i] = new BrightnessDdcService(ddcSnBus[monitorSn]);
-                else
-                    service[i] = new BrightnessCtlService();
-                break;
-            default:
-                throw new Error(`Unknown brightness controller ${preferredController}`);
-        }
+    switch (preferredController) {
+        case "brightnessctl":
+            service[monitorName] = new BrightnessCtlService();
+            break;
+        case "ddcutil":
+            service[monitorName] = new BrightnessDdcService(ddcSnBus[monitorSn]);
+            break;
+        case "auto":
+            if (monitorSn in ddcSnBus)
+                service[monitorName] = new BrightnessDdcService(ddcSnBus[monitorSn]);
+            else
+                service[monitorName] = new BrightnessCtlService();
+            break;
+        default:
+            throw new Error(`Unknown brightness controller ${preferredController}`);
     }
 }
+{
+    const hyprlandMonitors = Hyprland.monitors;
+    for (let i = 0; i < display.get_n_monitors(); ++i) {
+        const monitor = display.get_monitor(i);
+        Object.assign(monitor, { connector: hyprlandMonitors[i].name })
+        constructForMonitor(monitor);
+    }
+}
+display.connect("monitor-added", async monitor => {
+    ddcSnBus = await listDdcMonitorsSnBus();
+    const monitorList = Hyprland.monitors;
+    hyprlandMonitors = new Map(monitorList.map(e => [e.name, e]));
+    const geometry = monitor.get_geometry();
+    for (let i = 0; i < display.get_n_monitors(); ++i) {
+        const candidate = display.get_monitor(i).get_geometry();
+        if (candidate.x === geometry.x && candidate.y === geometry.y && candidate.width === geometry.width && candidate.height === geometry.height) {
+            Object.assign(monitor, { connector: monitorList[i].name });
+            break;
+        }
+    }
+    constructForMonitor(monitor);
+});
+display.connect("monitor-removed", monitor => {
+    delete service[monitor.connector];
+});
 
 // make it global for easy use with cli
 globalThis.brightness = service[0];

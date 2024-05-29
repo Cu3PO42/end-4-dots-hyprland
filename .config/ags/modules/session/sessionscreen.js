@@ -6,6 +6,8 @@ import Widget from 'resource:///com/github/Aylur/ags/widget.js';
 import * as Utils from 'resource:///com/github/Aylur/ags/utils.js';
 import { monitors } from '../.miscutils/hyprlanddata.js';
 
+// FIXME: the whole thing is borked
+
 const { exec, execAsync } = Utils;
 
 const SessionButton = (name, icon, command, props = {}, colorid = 0) => {
@@ -59,6 +61,7 @@ const SessionButton = (name, icon, command, props = {}, colorid = 0) => {
     });
 }
 
+// TODO: adjust this?
 export default ({ id = 0 }) => {
     // lock, logout, sleep
     const lockButton = SessionButton('Lock', 'lock', () => { closeWindowOnAllMonitors('session'); execAsync(['loginctl', 'lock-session']).catch(print) }, {}, 1);

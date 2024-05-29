@@ -4,6 +4,7 @@ import Gdk from 'gi://Gdk';
 import GLib from 'gi://GLib';
 import App from 'resource:///com/github/Aylur/ags/app.js'
 import * as Utils from 'resource:///com/github/Aylur/ags/utils.js'
+import Hyprland from 'resource:///com/github/Aylur/ags/service/hyprland.js';
 // Stuff
 import userOptions from './modules/.configuration/user_options.js';
 import { firstRunWelcome } from './services/messages.js';
@@ -21,7 +22,6 @@ import Session from './modules/session/main.js';
 import SideLeft from './modules/sideleft/main.js';
 import SideRight from './modules/sideright/main.js';
 
-const COMPILED_STYLE_DIR = `${GLib.get_user_cache_dir()}/ags/user/generated`
 const range = (length, start = 1) => Array.from({ length }, (_, i) => i + start);
 function forMonitors(widget) {
     const n = Gdk.Display.get_default()?.get_n_monitors() || 1;
@@ -33,6 +33,7 @@ function forMonitorsAsync(widget) {
 }
 
 // SCSS compilation
+const COMPILED_STYLE_DIR = `${GLib.get_user_cache_dir()}/ags/user/generated`
 Utils.exec(`mkdir -p "${GLib.get_user_state_dir()}/ags/scss"`);
 Utils.exec(`bash -c 'echo "" > ${GLib.get_user_state_dir()}/ags/scss/_musicwal.scss'`); // reset music styles
 Utils.exec(`bash -c 'echo "" > ${GLib.get_user_state_dir()}/ags/scss/_musicmaterial.scss'`); // reset music styles
@@ -45,25 +46,29 @@ async function applyStyle() {
 }
 applyStyle().catch(print);
 
+const mmmgr = new MultiMonitorManager();
+mmmgr.forMonitors(Crosshair);
+mmmgr.forMonitors(Indicator);
+mmmgr.forMonitors(Cheatsheet);
+mmmgr.forMonitors(Osk);
+mmmgr.forMonitors(Session);
+if (userOptions.dock.enabled) {
+    mmmgr.forMonitors(Dock);
+}
+if (userOptions.appearance.fakeScreenRounding) {
+    mmmgr.forMonitors((id) => Corner(id, 'top left', true));
+    mmmgr.forMonitors((id) => Corner(id, 'top right', true));
+}
+mmmgr.forMonitors((id) => Corner(id, 'bottom left', userOptions.appearance.fakeScreenRounding));
+mmmgr.forMonitors((id) => Corner(id, 'bottom right', userOptions.appearance.fakeScreenRounding));
+mmmgr.forMonitors(BarCornerTopleft);
+mmmgr.forMonitors(BarCornerTopright);
+mmmgr.forMonitors(Bar);
+
 const Windows = () => [
-    // forMonitors(DesktopBackground),
-    forMonitors(Crosshair),
     Overview(),
-    forMonitors(Indicator),
-    forMonitors(Cheatsheet),
     SideLeft(),
     SideRight(),
-    forMonitors(Osk),
-    forMonitors(Session),
-    ...(userOptions.dock.enabled ? [forMonitors(Dock)] : []),
-    ...(userOptions.appearance.fakeScreenRounding ? [
-        forMonitors((id) => Corner(id, 'top left', true)),
-        forMonitors((id) => Corner(id, 'top right', true)),
-    ] : []),
-    forMonitors((id) => Corner(id, 'bottom left', userOptions.appearance.fakeScreenRounding)),
-    forMonitors((id) => Corner(id, 'bottom right', userOptions.appearance.fakeScreenRounding)),
-    forMonitors(BarCornerTopleft),
-    forMonitors(BarCornerTopright),
 ];
 
 const CLOSE_ANIM_TIME = 210; // Longer than actual anim time to make sure widgets animate fully
@@ -78,7 +83,4 @@ App.config({
     closeWindowDelay: closeWindowDelays,
     windows: Windows().flat(1),
 });
-
-// Stuff that don't need to be toggled. And they're async so ugh...
-forMonitorsAsync(Bar);
-// Bar().catch(print); // Use this to debug the bar. Single monitor only.
+mmmgr.init();

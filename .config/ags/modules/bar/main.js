@@ -34,7 +34,7 @@ const FocusOptionalWorkspaces = async () => {
     }
 };
 
-export const Bar = async (monitor = 0) => {
+export const Bar = async (gdkmonitor) => {
     const SideModule = (children) => Widget.Box({
         className: 'bar-sidemodule',
         children: children,
@@ -46,7 +46,7 @@ export const Bar = async (monitor = 0) => {
             const minHeight = styleContext.get_property('min-height', Gtk.StateFlags.NORMAL);
             // execAsync(['bash', '-c', `hyprctl keyword monitor ,addreserved,${minHeight},0,0,0`]).catch(print);
         },
-        startWidget: (await WindowTitle(monitor)),
+        startWidget: (await WindowTitle(gdkmonitor)),
         centerWidget: Widget.Box({
             className: 'spacing-h-4',
             children: [
@@ -83,8 +83,8 @@ export const Bar = async (monitor = 0) => {
         }
     });
     return Widget.Window({
-        monitor,
-        name: `bar${monitor}`,
+        gdkmonitor,
+        name: `bar${gdkmonitor.connector}`,
         anchor: ['top', 'left', 'right'],
         exclusivity: 'exclusive',
         visible: true,
@@ -103,9 +103,9 @@ export const Bar = async (monitor = 0) => {
     });
 }
 
-export const BarCornerTopleft = (monitor = 0) => Widget.Window({
-    monitor,
-    name: `barcornertl${monitor}`,
+export const BarCornerTopleft = (gdkmonitor) => Widget.Window({
+    gdkmonitor,
+    name: `barcornertl${gdkmonitor.connector}`,
     layer: 'top',
     anchor: ['top', 'left'],
     exclusivity: 'normal',
@@ -113,9 +113,9 @@ export const BarCornerTopleft = (monitor = 0) => Widget.Window({
     child: RoundedCorner('topleft', { className: 'corner', }),
     setup: enableClickthrough,
 });
-export const BarCornerTopright = (monitor = 0) => Widget.Window({
-    monitor,
-    name: `barcornertr${monitor}`,
+export const BarCornerTopright = (gdkmonitor) => Widget.Window({
+    gdkmonitor,
+    name: `barcornertr${gdkmonitor.connector}`,
     layer: 'top',
     anchor: ['top', 'right'],
     exclusivity: 'normal',

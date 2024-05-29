@@ -39,16 +39,16 @@ const WindowTitle = async () => {
 }
 
 
-export default async (monitor = 0) => {
+export default async (gdkmonitor) => {
     const optionalWindowTitleInstance = await WindowTitle();
     return Widget.EventBox({
         onScrollUp: () => {
             Indicator.popup(1); // Since the brightness and speaker are both on the same window
-            Brightness[monitor].screen_value += 0.05;
+            Brightness[gdkmonitor.connector].screen_value += 0.05;
         },
         onScrollDown: () => {
             Indicator.popup(1); // Since the brightness and speaker are both on the same window
-            Brightness[monitor].screen_value -= 0.05;
+            Brightness[gdkmonitor.connector].screen_value -= 0.05;
         },
         onPrimaryClick: () => {
             App.toggleWindow('sideleft');

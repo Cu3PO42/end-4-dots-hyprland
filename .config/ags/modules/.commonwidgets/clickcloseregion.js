@@ -3,6 +3,7 @@ import Widget from 'resource:///com/github/Aylur/ags/widget.js';
 import { monitors } from '../.miscutils/hyprlanddata.js';
 const { Box, EventBox } = Widget;
 
+// TODO: may need adjustment
 export const clickCloseRegion = ({ name, multimonitor = true, monitor = 0, expand = true, fillMonitor = '' }) => {
     return EventBox({
         child: Box({

@@ -25,6 +25,8 @@ function clearTimes() {
     timers = []
 }
 
+// TODO: probably needs more adjustments
+
 function ExclusiveWindow(client) {
     const fn = [
         (client) => !(client !== null && client !== undefined),
@@ -230,7 +232,7 @@ const PinnedApps = () => Widget.Box({
         }),
 });
 
-export default (monitor = 0) => {
+export default (gdkmonitor) => {
     const dockContent = Box({
         className: 'dock-bg spacing-h-5',
         children: [
@@ -245,7 +247,7 @@ export default (monitor = 0) => {
         attribute: {
             'updateShow': self => { // I only use mouse to resize. I don't care about keyboard resize if that's a thing
                 if (userOptions.dock.monitorExclusivity)
-                    self.revealChild = Hyprland.active.monitor.id === monitor;
+                    self.revealChild = Hyprland.active.monitor.name === gdkmonitor.connector;
                 else
                     self.revealChild = true;
 

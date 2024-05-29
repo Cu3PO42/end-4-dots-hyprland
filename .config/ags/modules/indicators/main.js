@@ -5,9 +5,9 @@ import MusicControls from './musiccontrols.js';
 import ColorScheme from './colorscheme.js';
 import NotificationPopups from './notificationpopups.js';
 
-export default (monitor = 0) => Widget.Window({
-    name: `indicator${monitor}`,
-    monitor,
+export default (gdkmonitor) => Widget.Window({
+    name: `indicator${gdkmonitor.connector}`,
+    gdkmonitor,
     className: 'indicator',
     layer: 'overlay',
     // exclusivity: 'ignore',
@@ -22,7 +22,7 @@ export default (monitor = 0) => Widget.Window({
             className: 'osd-window',
             css: 'min-height: 2px;',
             children: [
-                IndicatorValues(monitor),
+                IndicatorValues(gdkmonitor.connector),
                 MusicControls(),
                 NotificationPopups(),
                 ColorScheme(),

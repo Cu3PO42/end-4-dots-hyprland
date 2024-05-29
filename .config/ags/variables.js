@@ -26,6 +26,7 @@ globalThis['cycleMode'] = () => {
     }
 }
 
+// TODO: this all needs to change because window names are different
 // // Window controls
 const range = (length, start = 1) => Array.from({ length }, (_, i) => i + start);
 globalThis['toggleWindowOnAllMonitors'] = (name) => {
