@@ -14,7 +14,7 @@ const APISERVICES = {
 
 const getWorkingImageSauce = (url) => {
     if (url.includes('pximg.net')) {
-        return `https://www.pixiv.net/en/artworks/${url.substring(url.lastIndexOf('/')).replace(/_p\d+\.png$/, '')}`;
+        return `https://www.pixiv.net/en/artworks/${url.substring(url.lastIndexOf('/') + 1).replace(/_p\d+\.(png|jpg|jpeg|gif)$/, '')}`;
     }
     return url;
 }
@@ -38,7 +38,7 @@ function paramStringFromObj(params) {
 class BooruService extends Service {
     _baseUrl = 'https://yande.re/post.json';
     _mode = 'yandere';
-    _nsfw = userOptions.sidebar.imageAllowNsfw;
+    _nsfw = userOptions.sidebar.image.allowNsfw;
     _responses = [];
     _queries = [];
 
@@ -80,7 +80,8 @@ class BooruService extends Service {
 
     async fetch(msg) {
         // Init
-        const userArgs = `${msg}${this._nsfw || !msg.includes('safe') ? '' : ' rating:safe'}`.split(/\s+/);
+        const userArgs = `${msg}${(!this._nsfw || msg.includes('safe')) ? ' rating:safe' : ''}`.split(/\s+/);
+        console.log(userArgs)
 
         let taglist = [];
         let page = 1;
@@ -102,7 +103,7 @@ class BooruService extends Service {
         const params = {
             'tags': taglist.join('+'),
             'page': `${page}`,
-            'limit': `${userOptions.sidebar.imageBooruCount}`,
+            'limit': `${userOptions.sidebar.image.batchCount}`,
         };
         const paramString = paramStringFromObj(params);
         // Fetch
@@ -128,6 +129,8 @@ class BooruService extends Service {
                         aspect_ratio: obj.width / obj.height,
                         id: obj.id,
                         tags: obj.tags,
+                        rating: obj.rating,
+                        is_nsfw: (obj.rating != 's'),
                         md5: obj.md5,
                         preview_url: obj.preview_url,
                         preview_width: obj.preview_width,

@@ -1,3 +1,5 @@
+import GLib from 'gi://GLib';
+import * as Utils from 'resource:///com/github/Aylur/ags/utils.js'
 import userOverrides from '../../user_options.js';
 
 // Default options.
@@ -9,6 +11,7 @@ let configOptions = {
         'defaultTemperature': 0.9,
         'enhancements': true,
         'useHistory': true,
+        'safety': true,
         'writingCursor': " ...", // Warning: Using weird characters can mess up Markdown rendering
         'proxyUrl': null, // Can be "socks5://127.0.0.1:9050" or "http://127.0.0.1:8080" for example. Leave it blank if you don't need it.
     },
@@ -18,16 +21,22 @@ let configOptions = {
         'durationLarge': 180,
     },
     'appearance': {
+        'autoDarkMode': { // Turns on dark mode in certain hours. Time in 24h format
+            'enabled': false,
+            'from': "18:10",
+            'to': "6:10",
+        },
         'keyboardUseFlag': false, // Use flag emoji instead of abbreviation letters
         'layerSmoke': false,
         'layerSmokeStrength': 0.2,
-        'fakeScreenRounding': true,
+        'barRoundCorners': 1, // 0: No, 1: Yes
+        'fakeScreenRounding': 1, // 0: None | 1: Always | 2: When not fullscreen
     },
     'apps': {
         'bluetooth': "blueberry",
         'imageViewer': "loupe",
         'network': "XDG_CURRENT_DESKTOP=\"gnome\" gnome-control-center wifi",
-        'settings': "XDG_CURRENT_DESKTOP=\"gnome\" gnome-control-center wifi",
+        'settings': "XDG_CURRENT_DESKTOP=\"gnome\" gnome-control-center",
         'taskManager': "gnome-usage",
         'terminal': "foot", // This is only for shell actions
     },
@@ -49,11 +58,19 @@ let configOptions = {
             'default': "auto",
         },
     },
+    'cheatsheet': {
+        'keybinds': {
+            'configPath': "" // Path to hyprland keybind config file. Leave empty for default (~/.config/hypr/hyprland/keybinds.conf)
+        }
+    },
     'gaming': {
         'crosshair': {
             'size': 20,
             'color': 'rgba(113,227,32,0.9)',
         },
+    },
+    'monitors': {
+        'scaleMethod': "division", // Either "division" [default] or "gdk"
     },
     'music': {
         'preferredPlayer': "plasma-browser-integration",
@@ -69,11 +86,41 @@ let configOptions = {
         'wsNumMarginScale': 0.07,
     },
     'sidebar': {
-        'imageColumns': 2,
-        'imageBooruCount': 20,
-        'imageAllowNsfw': false,
+        'ai': {
+            'extraGptModels': {
+                'oxygen3': {
+                    'name': 'Oxygen (GPT-3.5)',
+                    'logo_name': 'ai-oxygen-symbolic',
+                    'description': 'An API from Tornado Softwares\nPricing: Free: 100/day\nRequires you to join their Discord for a key',
+                    'base_url': 'https://app.oxyapi.uk/v1/chat/completions',
+                    'key_get_url': 'https://discord.com/invite/kM6MaCqGKA',
+                    'key_file': 'oxygen_key.txt',
+                    'model': 'gpt-3.5-turbo',
+                },
+            }
+        },
+        'image': {
+            'columns': 2,
+            'batchCount': 20,
+            'allowNsfw': false,
+            'saveInFolderByTags': false,
+        },
+        'pages': {
+            'order': ["apis", "tools"],
+            'apis': {
+                'order': ["gemini", "gpt", "waifu", "booru"],
+            }
+        },
     },
     'search': {
+        'enableFeatures': {
+            'actions': true,
+            'commands': true,
+            'mathResults': true,
+            'directorySearch': true,
+            'aiSearch': true,
+            'webSearch': true,
+        },
         'engineBaseUrl': "https://www.google.com/search?q=",
         'excludedSites': ["quora.com"],
     },
@@ -89,6 +136,7 @@ let configOptions = {
     },
     'weather': {
         'city': "",
+        'preferredUnit': "C", // Either C or F
     },
     'workspaces': {
         'shown': 10,
@@ -120,7 +168,10 @@ let configOptions = {
         // are too many files in the search path it'll affect performance
         // Example: ['/usr/share/icons/Tela-nord/scalable/apps']
         'searchPaths': [''],
-
+        'symbolicIconTheme': {
+            "dark": "Adwaita",
+            "light": "Adwaita",
+        },
         substitutions: {
             'code-url-handler': "visual-studio-code",
             'Code': "visual-studio-code",
@@ -163,23 +214,45 @@ let configOptions = {
             'prevTab': "Ctrl+Page_Up",
         },
         'cheatsheet': {
-            'nextTab': "Page_Down",
-            'prevTab': "Page_Up",
+            'keybinds': {
+                'nextTab': "Page_Down",
+                'prevTab': "Page_Up",
+            },
+            'nextTab': "Ctrl+Page_Down",
+            'prevTab': "Ctrl+Page_Up",
+            'cycleTab': "Ctrl+Tab",
         }
+    },
+    'bar': {
+        // Array of bar modes for each monitor. Hit Ctrl+Alt+Slash to cycle.
+        // Modes: "normal", "focus" (workspace indicator only), "nothing"
+        // Example for four monitors: ["normal", "focus", "normal", "nothing"]
+        'modes': ["normal"]
     },
 }
 
 // Override defaults with user's options
-function overrideConfigRecursive(userOverrides, configOptions = {}) {
+let optionsOkay = true;
+function overrideConfigRecursive(userOverrides, configOptions = {}, check = true) {
     for (const [key, value] of Object.entries(userOverrides)) {
-        if (typeof value === 'object') {
-            overrideConfigRecursive(value, configOptions[key]);
+        if (configOptions[key] === undefined && check) {
+            optionsOkay = false;
+        }
+        else if (typeof value === 'object' && !(value instanceof Array)) {
+            if (key === "substitutions" || key === "regexSubstitutions" || key === "extraGptModels") {
+                overrideConfigRecursive(value, configOptions[key], false);
+            } else overrideConfigRecursive(value, configOptions[key]);
         } else {
             configOptions[key] = value;
         }
     }
 }
 overrideConfigRecursive(userOverrides, configOptions);
+if (!optionsOkay) Utils.timeout(2000, () => Utils.execAsync(['notify-send',
+    'Update your user options',
+    'One or more config options don\'t exist',
+    '-a', 'ags',
+]).catch(print))
 
 globalThis['userOptions'] = configOptions;
 export default configOptions;

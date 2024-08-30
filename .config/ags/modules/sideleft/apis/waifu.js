@@ -164,7 +164,7 @@ const WaifuImage = (taglist) => {
                             name: 'Hoard',
                             icon: 'save',
                             action: (self) => {
-                                execAsync(['bash', '-c', `mkdir -p ~/Pictures/homework${thisBlock.attribute.isNsfw ? '/🌶️' : ''} && cp ${thisBlock.attribute.imagePath} ~/Pictures/homework${thisBlock.attribute.isNsfw ? '/🌶️/' : ''}`])
+                                execAsync(['bash', '-c', `mkdir -p $(xdg-user-dir PICTURES)/homework${thisBlock.attribute.isNsfw ? '/🌶️' : ''} && cp ${thisBlock.attribute.imagePath} $(xdg-user-dir PICTURES)/homework${thisBlock.attribute.isNsfw ? '/🌶️/' : ''}`])
                                     .then(() => self.label = 'done')
                                     .catch(print);
                             },
@@ -186,13 +186,16 @@ const WaifuImage = (taglist) => {
         transition: 'slide_down',
         transitionDuration: userOptions.animations.durationLarge,
         revealChild: false,
-        child: Overlay({
-            child: Box({
-                homogeneous: true,
-                className: 'sidebar-waifu-image margin-top-5',
-                children: [blockImage],
-            }),
-            overlays: [blockImageActions],
+        child: Box({
+            className: 'margin-top-5',
+            children: [Overlay({
+                child: Box({
+                    homogeneous: true,
+                    className: 'sidebar-waifu-image',
+                    children: [blockImage],
+                }),
+                overlays: [blockImageActions],
+            })]
         }),
     });
     const thisBlock = Box({
